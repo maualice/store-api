@@ -2,14 +2,15 @@ const Product = require('../models/product');
 
 const getAllProductsStatic = async (req, res) => {
   //throw new Error('testing async errors');
+  const search = 'ab';
   const products = await Product.find({
-    name: 'vase table',
+    name: { $regex: search, $options: 'i' },
   });
   res.status(200).json({ products, nbHits: products.length }); //msg: 'products testing route'
 };
 
 const getAllProducts = async (req, res) => {
-  const { featured, company, name } = req.query;
+  const { featured, company, name } = req.query; //el usuario tiene tres maneras de filtrado
   const queryObject = {};
 
   if (featured) {
@@ -19,7 +20,7 @@ const getAllProducts = async (req, res) => {
     queryObject.company = company;
   }
   if (name) {
-    queryObject.name = name;
+    queryObject.name = { $regex: name, $options: 'i' }; //me permite buscar un string especifico dentro de una cadena,muy util si no se el valor exacto del campo
   }
   console.log(req.query);
   const products = await Product.find(queryObject); //await Product.find(req.query);//ojo con poner {name:req.query},primero que ya viene como objeto y segundo ya viene el campo a filtrar
