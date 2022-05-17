@@ -9,11 +9,17 @@ const getAllProductsStatic = async (req, res) => {
 };
 
 const getAllProducts = async (req, res) => {
-  const { featured } = req.query;
+  const { featured, company, name } = req.query;
   const queryObject = {};
 
   if (featured) {
     queryObject.featured = featured === 'true' ? true : false; // si featured no esta vacia,le asigno a el objeto creado objectQuery un campo llamado featured y le asigno true o false.Esto es para evitar bug que muestra vacio si paso una propiedad como query que no existe
+  }
+  if (company) {
+    queryObject.company = company;
+  }
+  if (name) {
+    queryObject.name = name;
   }
   console.log(req.query);
   const products = await Product.find(queryObject); //await Product.find(req.query);//ojo con poner {name:req.query},primero que ya viene como objeto y segundo ya viene el campo a filtrar
