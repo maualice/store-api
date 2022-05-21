@@ -10,7 +10,7 @@ const getAllProductsStatic = async (req, res) => {
 };
 
 const getAllProducts = async (req, res) => {
-  const { featured, company, name, sort, fields } = req.query; //el usuario tiene tres maneras de filtrado //no necesariamente hay que poner el nombre exacto de la funcion,ej fields
+  const { featured, company, name, sort, fields, numericFilters } = req.query; //el usuario tiene tres maneras de filtrado //no necesariamente hay que poner el nombre exacto de la funcion,ej fields
   const queryObject = {};
 
   if (featured) {
@@ -22,7 +22,30 @@ const getAllProducts = async (req, res) => {
   if (name) {
     queryObject.name = { $regex: name, $options: 'i' }; //me permite buscar un string especifico dentro de una cadena,muy util si no se el valor exacto del campo
   }
-  //console.log(req.query);
+  if (numericFilters) {
+    const operatorMap = {
+      '>': '$gt',
+      '>=': '$gte',
+      '<': '$lt',
+      '<=': '$lte',
+      '=': '$eq',
+    };
+    const regEx = /\b(>|>=|=|<|<=)\b/g;
+    let filters = numericFilters.replace(
+      //si ingreso por ej price>40,rating>=4 filters tendra  price-$gt-40 y rating-$gte-4
+      regEx,
+      (match) => `-${operatorMap[match]}-`
+    );
+    const options = ['price', 'rating'];
+    filters = filters.split(',').forEach((item) => {
+      const [field, operator, value] = item.split('-');
+      if (options.includes(field)) {
+        queryObject[field] = { [operator]: Number(value) }; // si pongo sin [] me da el noombre literal y no el valor.En value Number quizas funciona como un .log que accede al valor
+      }
+    });
+  }
+
+  console.log(queryObject);
   let result = Product.find(queryObject); //Product.find(queryObject); //await Product.find(req.query);//ojo con poner {name:req.query},primero que ya viene como objeto y segundo ya viene el campo a filtrar
   //sort
   if (sort) {
